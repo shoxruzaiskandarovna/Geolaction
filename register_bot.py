@@ -1,6 +1,6 @@
 import logging
 import sqlite3
-
+from geo_name import get_location_name
 from telegram import ReplyKeyboardMarkup, KeyboardButton, Update
 from telegram.ext import (
     ApplicationBuilder,
@@ -11,7 +11,7 @@ from telegram.ext import (
     filters,
 )
 
-from geo_name import get_location_name
+
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -75,7 +75,6 @@ async def last_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def age(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    async def age(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data['age'] = update.message.text
         await update.message.reply_text("Rahmat! Jinsingiz (erkak/ayol)?")
         return GENDER
@@ -94,50 +93,48 @@ async def gender(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return GEOLOCATION
 
 async def geolocation(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        latitude = update.message.location.latitude
-        longitude = update.message.location.longitude
-        address = get_location_name(latitude, longitude)
+    latitude = update.message.location.latitude
+    longitude = update.message.location.longitude
+    address = get_location_name(latitude, longitude)
 
-        context.user_data.update({
-            "latitude": latitude,
-            "longitude": longitude,
-            "address": address,
-        })
+    context.user_data.update({
+        "latitude": latitude,
+        "longitude": longitude,
+        "address": address,
+    })
 
-        conn = sqlite3.connect("users.db")
-        c = conn.cursor()
-        c.execute(
-            sql="INSERT OR REPLACE INTO users VALUES (?,?,?,?,?,?,?,?)",
-            parameters=(
-                context.user_data['phone_number'],
-                context.user_data['first_name'],
-                context.user_data['last_name'],
-                context.user_data['age'],
-                context.user_data['gender'],
-                context.user_data['address'],
-                context.user_data['latitude'],
-                context.user_data['longitude'],
-            )
+    conn = sqlite3.connect("users.db")
+    c = conn.cursor()
+    c.execute(
+        "INSERT OR REPLACE INTO users VALUES (?,?,?,?,?,?,?,?)",
+        (
+            context.user_data['phone_number'],
+            context.user_data['first_name'],
+            context.user_data['last_name'],
+            context.user_data['age'],
+            context.user_data['gender'],
+            context.user_data['address'],
+            context.user_data['latitude'],
+            context.user_data['longitude'],
         )
-        conn.commit()
-        conn.close()
+    )
+    conn.commit()
+    conn.close()
 
-        logging.info("User Registered")
+    logging.info("User Registered")
 
-        await update.message.reply_text("Ro'yxatdan o'tganingiz uchun rahmat! ✅")
-        await update.message.reply_text(
-            f"""
-        📱 Phone: {context.user_data['phone_number']}
-        👤 First name: {context.user_data['first_name']}
-        👤 Last name: {context.user_data['last_name']}
-        🎂 Age: {context.user_data['age']}
-        👫 Gender: {context.user_data['gender']}
-        📍 Address: {context.user_data['address']}
-        """
-        )
-        return ConversationHandler.END
-
-
+    await update.message.reply_text("Ro'yxatdan o'tganingiz uchun rahmat! ✅")
+    await update.message.reply_text(
+        f"""
+    📱 Phone: {context.user_data['phone_number']}
+    👤 First name: {context.user_data['first_name']}
+    👤 Last name: {context.user_data['last_name']}
+    🎂 Age: {context.user_data['age']}
+    👫 Gender: {context.user_data['gender']}
+    📍 Address: {context.user_data['address']}
+    """
+    )
+    return ConversationHandler.END
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Bekor qilindi!")
     return ConversationHandler.END
@@ -164,5 +161,5 @@ def main():
     app.add_handler(conv_handler)
     app.run_polling()
 
-    if __name__ == "__main__":
-        main()
+if __name__ == "__main__":
+    main()
